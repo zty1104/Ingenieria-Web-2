@@ -1,4 +1,5 @@
-*/ Estilos generales */
+/* Estilos generales */
+
         :root {
             --primary: #0d1da8c7;
             --secondary: #37dac4;
@@ -408,4 +409,4 @@
             .hero h1 {
                 font-size: 2rem;
             }
-   }
+        }
