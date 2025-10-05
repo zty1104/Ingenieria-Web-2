@@ -1,10 +1,10 @@
 /* Estilos generales */
 
         :root {
-            --primary: #8d94d2c7;
+            --primary: #0d1da8c7;
             --secondary: #37dac4;
             --accent: #e74c3c;
-            --light: #8ae0f5;
+            --light: #ecf0f1;
             --dark: #2c3e50;
             --text: #333;
         }
@@ -410,3 +410,4 @@
                 font-size: 2rem;
             }
    }
+
