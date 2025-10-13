@@ -10,57 +10,71 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "baseHref": "/frontend/",
-            "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "outputPath": "dist/mi-proyecto",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"],
+            "scripts": []
           },
           "configurations": {
             "production": {
-              "budgets": [
+              "fileReplacements": [
                 {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ],
+              "optimization": true,
               "outputHashing": "all",
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                },
-                "fonts": true
-              }
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
             },
             "development": {
               "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "extractCss": false
             }
           },
           "defaultConfiguration": "development"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "mi-proyecto:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "mi-proyecto:build:production"
+            },
+            "development": {
+              "browserTarget": "mi-proyecto:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": ["tsconfig.app.json", "tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
+          }
         }
       }
     }
@@ -69,4 +83,3 @@
     "analytics": false
   }
 }
-

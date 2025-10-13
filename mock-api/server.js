@@ -1,64 +1,57 @@
+// mock-api/server.js
 
-// Simple mock REST API using Express
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser'); // Aunque express.json() es suficiente, lo mantenemos por consistencia.
+// const path = require('path'); // No necesario si las rutas son relativas
+
+// --- PASO 1: Carga de Conexión a MySQL ---
+// Importa la instancia de Sequelize configurada en db.config.js
+const sequelize = require('./config/db.config'); 
+// También cargamos dotenv para el puerto, aunque ya se carga en db.config.js
+require('dotenv').config({ path: './.env' }); 
+
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000; // Usaremos 3000 como puerto por defecto, aunque puedes mantener 3001.
 
-app.use(cors());
-app.use(bodyParser.json());
+// --- Middlewares Necesarios ---
+app.use(cors()); // Permite peticiones de tu Frontend Angular
+app.use(express.json()); // Permite a Express leer JSON en el body de las peticiones POST/PUT
+app.use(bodyParser.json()); // Mantenemos bodyParser por si lo necesitas, aunque express.json es el moderno.
 
-let products = [
-  { id: 1, name: 'Camiseta', price: 29.99 },
-  { id: 2, name: 'Pantalón', price: 49.99 },
-  { id: 3, name: 'Chaqueta', price: 79.99 }
-];
 
-// List all
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
+// --- PASO 2: Importa y Usa las Rutas de la API Real ---
+// Asumiendo que has creado usuarioRoutes (ej. para productos o usuarios)
+const productoRoutes = require('./routes/producto.routes'); // ASUME que creaste routes/producto.routes.js
+// const usuarioRoutes = require('./routes/usuario.routes'); // Si usas usuarios en lugar de productos
 
-// Get one
-app.get('/api/products/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const p = products.find(x => x.id === id);
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  res.json(p);
-});
+app.use('/api/products', productoRoutes); // Mapea las rutas reales a /api/products
 
-// Create
-app.post('/api/products', (req, res) => {
-  const { name, price } = req.body;
-  if (!name || typeof price !== 'number') {
-    return res.status(400).json({ error: 'Invalid payload' });
-  }
-  const id = products.length ? Math.max(...products.map(p=>p.id))+1 : 1;
-  const newP = { id, name, price };
-  products.push(newP);
-  res.status(201).json(newP);
-});
 
-// Delete
-app.delete('/api/products/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const before = products.length;
-  products = products.filter(p => p.id !== id);
-  if (products.length === before) return res.status(404).json({ error: 'Not found' });
-  res.status(204).send();
-});
-
-// Simple reset endpoint for testing
+// --- Lógica del Mock (Opcional) ---
+// NOTA: La lógica de mock (products array, app.get, app.post) DEBE eliminarse.
+// Solo puedes mantener el endpoint de reset si lo necesitas para otras pruebas.
+/*
 app.post('/api/__reset', (req, res) => {
-  products = [
-    { id: 1, name: 'Camiseta', price: 29.99 },
-    { id: 2, name: 'Pantalón', price: 49.99 },
-    { id: 3, name: 'Chaqueta', price: 79.99 }
-  ];
-  res.json({ ok: true, products });
+    // Aquí puedes resetear las tablas de MySQL si es necesario, 
+    // pero requiere lógica avanzada con Sequelize.
+    res.json({ ok: true, message: "Reset simulado. Usa DB para resetear." });
 });
+*/
 
-app.listen(port, () => {
-  console.log(`Mock API listening at http://localhost:${port}/api/products`);
-});
+// --- PASO 3: Sincronización con MySQL e Inicio del Servidor ---
+
+// sequelize.sync() intenta crear las tablas que defines en tus Modelos (ej: models/producto.model.js)
+sequelize.sync({ alter: true }) // 'alter: true' intenta ajustar las tablas sin perder datos
+    .then(() => {
+        console.log("DB: Modelos sincronizados con MySQL. Iniciando servidor...");
+        
+        // Iniciar el servidor de Node.js SOLO si la conexión a la DB fue exitosa
+        app.listen(port, () => {
+            console.log(`Servidor Node.js (API REAL) corriendo en http://localhost:${port}/api/products`);
+        });
+    })
+    .catch(err => {
+        console.error("❌ No se pudo iniciar el servidor debido a un error de conexión/sincronización con la DB:", err.message);
+        // Es importante no iniciar el servidor si la DB falla.
+    })
